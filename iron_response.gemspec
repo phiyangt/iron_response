@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.version       = IronResponse::VERSION
 
   gem.add_dependency "iron_worker_ng"
-  gem.add_dependency "aws-s3"
+  gem.add_dependency "aws-sdk"
   gem.add_dependency "iron_cache"
   #gem.add_development_dependency "minitest", "~> 4.7.3"
   gem.add_development_dependency "pry"

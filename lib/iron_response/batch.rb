@@ -1,6 +1,6 @@
 require "iron_cache"
 require "iron_worker_ng"
-require "aws/s3"
+require "aws-sdk"
 require "json"
 
 module IronResponse
@@ -43,13 +43,14 @@ module IronResponse
 
     def get_aws_s3_response(task_id)
       aws_s3 = @config[:aws_s3]
-      AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
-                                          secret_access_key: aws_s3[:secret_access_key]
+      s3 = AWS::S3.new(access_key_id:     aws_s3[:access_key_id],
+                       secret_access_key: aws_s3[:secret_access_key])
+
 
       bucket_name = IronResponse::Common.s3_bucket_name(@config)
-      bucket      = AWS::S3::Bucket.find(bucket_name)
+      bucket      = s3.buckets[bucket_name]
       path        = IronResponse::Common.s3_path(task_id)
-      response    = bucket[path]
+      response    = bucket
 
       IronResponse::Common.handle_response(response, task_id, @client)
     end
@@ -58,7 +59,7 @@ module IronResponse
       cache_client = IronCache::Client.new(@config[:iron_io])
       cache_name   = IronResponse::Common.iron_cache_cache_name(@config)
       cache        = cache_client.cache(cache_name)
-      
+
       key          = IronResponse::Common.iron_cache_key(task_id)
       response     = cache.get(key)
 

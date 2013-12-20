@@ -1,4 +1,4 @@
-require "aws/s3"
+require "aws-sdk"
 require "iron_cache"
 require "json"
 
@@ -30,13 +30,16 @@ module IronResponse
 
     def send_data_to_s3(params, task_id, data)
       aws_s3 = @config[:aws_s3]
-      AWS::S3::Base.establish_connection! access_key_id:     aws_s3[:access_key_id],
-                                          secret_access_key: aws_s3[:secret_access_key]
-      
+      s3 = AWS::S3.new(access_key_id:     aws_s3[:access_key_id],
+                       secret_access_key: aws_s3[:secret_access_key])
+
       path        = IronResponse::Common.s3_path(task_id)
       bucket_name = IronResponse::Common.s3_bucket_name(@config)
       value       = data.to_json
 
+      bucket = s3.buckets[bucket_name]
+      object = bucket.objects[path]
+      object.write(value)
       AWS::S3::S3Object.store(path, value, bucket_name)
     end
   end
